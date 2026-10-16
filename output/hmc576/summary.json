@@ -1,0 +1,88 @@
+{
+ "source": "unprocessed/hmc576.pdf",
+ "error": "",
+ "plots": [
+  {
+   "file": "p02_01_output_power_vs_temperature_3_dbm_drive_level.json",
+   "page": 2,
+   "title": "Output Power vs. Temperature @ 3 dBm Drive Level",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.674,
+    "-55C": 0.743
+   },
+   "min_confidence": 0.674
+  },
+  {
+   "file": "p02_02_output_power_vs_drive_level.json",
+   "page": 2,
+   "title": "Output Power vs. Drive Level",
+   "series": {
+    "-6dBm | 0dBm [curve 1 of 2, top to bottom]": 0.304,
+    "-6dBm | 0dBm [curve 2 of 2, top to bottom]": 0.304,
+    "-4dBm": 0.25,
+    "-2dBm": 0.305,
+    "2dBm": 0.485,
+    "4dBm": 0.2,
+    "6dBm": 0.528
+   },
+   "min_confidence": 0.2
+  },
+  {
+   "file": "p02_03_output_power_vs_supply_voltage_3_dbm_drive_level.json",
+   "page": 2,
+   "title": "Output Power vs. Supply Voltage @ 3 dBm Drive Level",
+   "series": {
+    "4.5V": 0.709,
+    "5.0V": 1.0,
+    "5.5V": 0.768
+   },
+   "min_confidence": 0.709
+  },
+  {
+   "file": "p02_04_isolation_3_dbm_drive_level.json",
+   "page": 2,
+   "title": "Isolation @ 3 dBm Drive Level",
+   "series": {
+    "Fo": 0.57,
+    "2Fo": 1.0,
+    "3Fo": 0.744
+   },
+   "min_confidence": 0.57
+  },
+  {
+   "file": "p02_05_output_power_vs_input_power.json",
+   "page": 2,
+   "title": "Output Power vs. Input Power",
+   "series": {
+    "18GHz": 0.719,
+    "24GHz": 1.0,
+    "29GHz": 0.786
+   },
+   "min_confidence": 0.719
+  },
+  {
+   "file": "p03_06_input_return_loss_vs_temperature.json",
+   "page": 3,
+   "title": "Input Return Loss vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.64,
+    "-55C": 0.808
+   },
+   "min_confidence": 0.64
+  },
+  {
+   "file": "p03_07_output_return_loss_vs_temperature.json",
+   "page": 3,
+   "title": "Output Return Loss vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.731,
+    "-55C": 0.781
+   },
+   "min_confidence": 0.731
+  }
+ ],
+ "raster_figures": []
+}
