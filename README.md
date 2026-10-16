@@ -50,7 +50,7 @@ Console output looks like:
 done: 1/1 ok -> out/ (index: out/index.jsonl)
 ```
 
-A typical datasheet takes 2–3 seconds with both images on.
+On HMC576, one worker takes about 3.4 s per datasheet with both check images and about 1.2 s without them.
 
 ## Drop-folder automation (GitHub Actions)
 
@@ -134,7 +134,7 @@ Every switch works three ways: a command-line flag, an environment variable, or,
 | Parallel workers | `-j N` | | number of CPU cores |
 | Output folder | `-o DIR` (`--out` for `inbox`) | | `out/` (`output/` for `inbox`) |
 
-Skipping both PNGs roughly halves processing time and keeps the repo much smaller on large batches.
+Skipping both PNGs cuts processing time by about two-thirds (3.4 s → 1.2 s per datasheet on HMC576) and keeps the repo much smaller on large batches.
 
 ## Checking results and confidence
 
