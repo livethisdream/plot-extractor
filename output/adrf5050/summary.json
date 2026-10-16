@@ -1,0 +1,27 @@
+{
+ "source": "unprocessed/adrf5050.pdf",
+ "error": "",
+ "plots": [],
+ "raster_figures": [
+  {
+   "page": 16,
+   "bbox_pt": [
+    365.0,
+    110.7,
+    531.4,
+    265.0
+   ],
+   "status": "raster figure \u2013 not extracted (raster path not implemented)"
+  },
+  {
+   "page": 16,
+   "bbox_pt": [
+    357.2,
+    398.2,
+    540.9,
+    559.6
+   ],
+   "status": "raster figure \u2013 not extracted (raster path not implemented)"
+  }
+ ]
+}

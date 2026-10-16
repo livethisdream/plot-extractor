@@ -1,0 +1,128 @@
+{
+ "source": "unprocessed/hmc383.pdf",
+ "error": "",
+ "plots": [
+  {
+   "file": "p02_01_broadband_gain_return_loss.json",
+   "page": 2,
+   "title": "Broadband Gain & Return Loss",
+   "series": {
+    "S21": 1.0,
+    "S11": 0.622,
+    "S22": 0.645
+   },
+   "min_confidence": 0.622
+  },
+  {
+   "file": "p02_02_gain_vs_temperature.json",
+   "page": 2,
+   "title": "Gain vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.723,
+    "-40C": 0.723
+   },
+   "min_confidence": 0.723
+  },
+  {
+   "file": "p02_03_input_return_loss_vs_temperature.json",
+   "page": 2,
+   "title": "Input Return Loss vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.531,
+    "-40C": 0.694
+   },
+   "min_confidence": 0.531
+  },
+  {
+   "file": "p02_04_output_return_loss_vs_temperature.json",
+   "page": 2,
+   "title": "Output Return Loss vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.624,
+    "-40C": 0.694
+   },
+   "min_confidence": 0.624
+  },
+  {
+   "file": "p02_05_p1db_vs_temperature.json",
+   "page": 2,
+   "title": "P1dB vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.584,
+    "-40C": 0.596
+   },
+   "min_confidence": 0.584
+  },
+  {
+   "file": "p02_06_psat_vs_temperature.json",
+   "page": 2,
+   "title": "Psat vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.553,
+    "-40C": 0.583
+   },
+   "min_confidence": 0.553
+  },
+  {
+   "file": "p03_07_power_compression_18_ghz.json",
+   "page": 3,
+   "title": "Power Compression @ 18 GHz",
+   "series": {
+    "Pout (dBm)": 1.0,
+    "Gain (dB)": 0.846,
+    "PAE (%)": 0.88
+   },
+   "min_confidence": 0.846
+  },
+  {
+   "file": "p03_08_power_compression_30_ghz.json",
+   "page": 3,
+   "title": "Power Compression @ 30 GHz",
+   "series": {
+    "Pout (dBm)": 1.0,
+    "Gain (dB)": 0.877,
+    "PAE (%)": 0.929
+   },
+   "min_confidence": 0.877
+  },
+  {
+   "file": "p03_09_output_ip3_vs_temperature.json",
+   "page": 3,
+   "title": "Output IP3 vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.734,
+    "-40C": 0.697
+   },
+   "min_confidence": 0.697
+  },
+  {
+   "file": "p03_10_noise_figure_vs_temperature.json",
+   "page": 3,
+   "title": "Noise Figure vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.526,
+    "-40C": 0.65
+   },
+   "min_confidence": 0.526
+  },
+  {
+   "file": "p03_11_reverse_isolation_vs_temperature.json",
+   "page": 3,
+   "title": "Reverse Isolation vs. Temperature",
+   "series": {
+    "+25C": 1.0,
+    "+85C": 0.622,
+    "-40C": 0.676
+   },
+   "min_confidence": 0.622
+  }
+ ],
+ "raster_figures": []
+}
