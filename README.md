@@ -20,6 +20,18 @@ For each PDF this writes, per plot:
 
 `out/index.jsonl` gets one line per PDF (status, plot and series counts, number of low-confidence series, time taken). Sort or filter it to triage a batch.
 
+## Drop-folder automation (GitHub Actions)
+
+Commit PDFs into `unprocessed/` (subfolders are fine) and push. `.github/workflows/process-datasheets.yml` then:
+
+1. extracts every PDF into `output/<datasheet>/` (JSON, CSV, overlays, `summary.json`);
+2. moves each PDF to `processed/`, or to `failed/` if it can't be read, so bad files aren't retried every run;
+3. appends to `output/index.jsonl`, posts a results table on the run's summary page, and commits everything back.
+
+Re-dropping a file with the same name keeps the earlier copy in `processed/` (timestamp suffix) and overwrites its outputs. The same thing runs locally with `python -m plot_extractor.inbox`.
+
+To keep datasheets off GitHub's machines, or to use the LLM hook against a box on your network, switch `runs-on` to a self-hosted runner. Then set the repository variables `PLOTX_LLM_URL` / `PLOTX_LLM_MODEL`.
+
 ## How it works
 
 1. **Primitives** (`primitives.py`) normalize every way a curve can be encoded into centerline segments:
