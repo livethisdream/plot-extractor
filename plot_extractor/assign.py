@@ -387,9 +387,10 @@ def _points(frame, tracks):
     return frame.to_data(P) if len(P) else np.empty((0, 2)), P
 
 
-def extract_series(page: pymupdf.Page, frame: PlotFrame, segs: list[Seg], boxes: list[Box]):
+def extract_series(page: pymupdf.Page, frame: PlotFrame, segs: list[Seg], boxes: list[Box],
+                   text=None):
     _, styles = curve_segments(frame, segs, [])
-    entries, excl = find_legend(page, frame, segs, boxes, styles)
+    entries, excl = find_legend(page, frame, segs, boxes, styles, text)
     csegs, _ = curve_segments(frame, segs, excl)
     strokes = chain_segments(csegs)
     diag = {"legend": [e.label for e in entries], "unassigned_length_pt": 0.0}
@@ -491,5 +492,7 @@ def _no_legend(frame, strokes):
         data, P = _points(frame, c)
         p = pattern_of([s for t in c for s in t], 12.0)
         kind = "solid" if p.solid else f"dash~{p.dash:.1f}pt"
-        out.append(Series(f"series_{k + 1} ({kind})", data, P, c, 0.5))
+        # a lone solid curve without a legend is unambiguous; several are not
+        conf = 0.9 if len(curves) == 1 and p.solid else 0.5
+        out.append(Series(f"series_{k + 1} ({kind})", data, P, c, conf))
     return out

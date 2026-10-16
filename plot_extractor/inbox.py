@@ -54,7 +54,7 @@ def process_inbox(inbox: Path, processed: Path, failed: Path, out: Path,
             series = [s for p in res.plots for s in p.series]
             rec.update(ok=True, plots=len(res.plots), series=len(series),
                        low_confidence_series=sum(1 for s in series if s.confidence < 0.5),
-                       raster_figures=len(res.raster_pages))
+                       raster_figures=len(res.raster_pages), warnings=res.warnings)
             dest_root = processed
         except Exception as e:
             rec.update(ok=False, error=f"{type(e).__name__}: {e}")
@@ -75,14 +75,16 @@ def summary_markdown(results: list[dict]) -> str:
         return "No PDFs found in the inbox.\n"
     ok = sum(r["ok"] for r in results)
     lines = [f"### Datasheet extraction: {ok}/{len(results)} succeeded", "",
-             "| datasheet | status | plots | series | low-confidence | raster figs skipped |",
-             "|---|---|---|---|---|---|"]
+             "| datasheet | status | plots | series | low-confidence | images skipped | warnings |",
+             "|---|---|---|---|---|---|---|"]
     for r in results:
         if r["ok"]:
-            lines.append(f"| {r['source']} | ok | {r['plots']} | {r['series']} | "
-                         f"{r['low_confidence_series']} | {r['raster_figures']} |")
+            status = "ok" if r["plots"] else "**no plots found**"
+            warn = "; ".join(w for w in r.get("warnings", []) if w != "no plots found")
+            lines.append(f"| {r['source']} | {status} | {r['plots']} | {r['series']} | "
+                         f"{r['low_confidence_series']} | {r['raster_figures']} | {warn} |")
         else:
-            lines.append(f"| {r['source']} | **failed**: {r['error']} | | | | |")
+            lines.append(f"| {r['source']} | **failed**: {r['error']} | | | | | |")
     return "\n".join(lines) + "\n"
 
 

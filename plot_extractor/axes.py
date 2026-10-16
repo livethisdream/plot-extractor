@@ -15,6 +15,7 @@ import numpy as np
 import pymupdf
 
 from .primitives import Seg
+from .text import PageText
 
 _NUM_RE = re.compile(r"^([+\-−–]?)(\d+(?:\.\d*)?|\.\d+)([eE][+\-]?\d+)?([kMGmunpµ]?)$")
 _SI = {"": 1.0, "k": 1e3, "M": 1e6, "G": 1e9, "m": 1e-3, "u": 1e-6, "µ": 1e-6, "n": 1e-9, "p": 1e-12}
@@ -92,6 +93,8 @@ class PlotFrame:
     yaxis: Axis
     rect: pymupdf.Rect = field(default=None)
     title: str = ""
+    figure: str = ""
+    ocr: bool = False  # tick/legend labels came from OCR
     xlabel: str = ""
     ylabel: str = ""
 
@@ -104,13 +107,29 @@ class PlotFrame:
         return np.c_[self.xaxis.to_pos(D[:, 0]), self.yaxis.to_pos(D[:, 1])]
 
 
-def numeric_labels(page: pymupdf.Page) -> list[Label]:
+def numeric_labels(text: PageText) -> list[Label]:
     labels = []
-    for w in page.get_text("words"):
-        v = parse_number(w[4])
+    for w in text.words:
+        if abs(w.dir[1]) > 0.1:
+            continue
+        v = parse_number(w.text)
         if v is not None:
-            labels.append(Label(v, w[4], pymupdf.Rect(w[:4])))
+            labels.append(Label(v, w.text, w.rect))
     return labels
+
+
+def _skips_one(run, it) -> bool:
+    """Does `it` continue `run`'s value progression with exactly one value missing?"""
+    vals = [getattr(l, "value", None) for l in run[-2:]] + [getattr(it, "value", None)]
+    if None in vals:
+        return False
+    a, b, c = vals
+    step = b - a
+    if step != 0 and abs((c - b) - 2 * step) <= 1e-6 * max(1.0, abs(step)):
+        return True
+    if a > 0 and b > 0 and c > 0:  # log axis: constant ratio
+        return abs(c / b - (b / a) ** 2) <= 1e-6 * (b / a) ** 2
+    return False
 
 
 def _split_runs(items, key, tol=0.25):
@@ -131,8 +150,15 @@ def _split_runs(items, key, tol=0.25):
                 continue
             g0 = g
             cur.append(it)
-        elif abs(g - g0) <= tol * g0:
+        elif abs(g - g0) <= tol * g0 or (len(cur) >= 3 and abs(g - 2 * g0) <= tol * g0
+                                          and _skips_one(cur, it)):
+            # (a gap of two spacings whose value also skips one step = one unreadable label)
             cur.append(it)
+        elif len(cur) == 2:
+            # the first label was a stray (e.g. a number in a heading): restart from
+            # the second one, which still pairs with this label
+            runs.append(cur[:1])
+            cur, g0 = [cur[1], it], g
         else:
             runs.append(cur)
             cur, g0 = [it], None
@@ -158,9 +184,31 @@ def _fit(positions, values):
     return best
 
 
+def _drop_outlier(labels, positions, bad=0.03):
+    """If one misread label spoils an otherwise clean axis fit, drop it."""
+    f = _fit(positions, [l.value for l in labels])
+    if (f is not None and f[3] <= bad) or len(labels) < 4:
+        return labels, positions
+    best = None
+    for k in range(len(labels)):
+        ls = labels[:k] + labels[k + 1:]
+        ps = positions[:k] + positions[k + 1:]
+        fk = _fit(ps, [l.value for l in ls])
+        if fk is not None and fk[3] <= bad and (best is None or fk[3] < best[0]):
+            best = (fk[3], ls, ps)
+    return (best[1], best[2]) if best else (labels, positions)
+
+
 def _monotone(values):
     d = np.diff(values)
     return bool(np.all(d > 0) or np.all(d < 0))
+
+
+def _nearly_monotone(values):
+    """Monotone, or monotone after removing one (misread) value."""
+    if _monotone(values):
+        return True
+    return len(values) >= 4 and any(_monotone(values[:k] + values[k + 1:]) for k in range(len(values)))
 
 
 def _axis_groups(labels: list[Label]):
@@ -178,7 +226,7 @@ def _axis_groups(labels: list[Label]):
     for c in clusters:
         c = sorted(c, key=lambda l: l.cy)
         for run in _split_runs(c, lambda l: l.cy):
-            if len(run) >= 3 and _monotone([l.value for l in run]):
+            if len(run) >= 3 and _nearly_monotone([l.value for l in run]):
                 cols.append(run)
     # rows: share vertical center
     used = sorted(labels, key=lambda l: l.cy)
@@ -192,7 +240,7 @@ def _axis_groups(labels: list[Label]):
     for c in clusters:
         c = sorted(c, key=lambda l: l.cx)
         for run in _split_runs(c, lambda l: l.cx):
-            if len(run) >= 3 and _monotone([l.value for l in run]):
+            if len(run) >= 3 and _nearly_monotone([l.value for l in run]):
                 rows.append(run)
     return cols, rows
 
@@ -234,8 +282,10 @@ def _snap(labels, orient, segs, span):
             for s, r in zip(snapped, raw)]
 
 
-def find_plots(page: pymupdf.Page, segs: list[Seg], page_no: int = 0) -> list[PlotFrame]:
-    labels = numeric_labels(page)
+def find_plots(page: pymupdf.Page, segs: list[Seg], page_no: int = 0,
+               text: PageText | None = None) -> list[PlotFrame]:
+    text = text or PageText.from_page(page)
+    labels = numeric_labels(text)
     cols, rows = _axis_groups(labels)
     pairs = []
     for ci, col in enumerate(cols):
@@ -260,6 +310,8 @@ def find_plots(page: pymupdf.Page, segs: list[Seg], page_no: int = 0) -> list[Pl
         yspan = (min(l.cy for l in col), max(l.cy for l in col))
         xpos = _snap(row, "x", segs, yspan)
         ypos = _snap(col, "y", segs, xspan)
+        row, xpos = _drop_outlier(row, xpos)
+        col, ypos = _drop_outlier(col, ypos)
         fx = _fit(xpos, [l.value for l in row])
         fy = _fit(ypos, [l.value for l in col])
         if fx is None or fy is None or fx[3] > 0.03 or fy[3] > 0.03:
@@ -271,20 +323,14 @@ def find_plots(page: pymupdf.Page, segs: list[Seg], page_no: int = 0) -> list[Pl
         rect = pymupdf.Rect(xa.lo, ya.lo, xa.hi, ya.hi)
         frames.append(PlotFrame(page_no, xa, ya, rect))
     for f in frames:
-        _attach_text(page, f)
+        _attach_text(text, f)
     frames.sort(key=lambda f: (round(f.rect.y0 / 50), f.rect.x0))
     return frames
 
 
-def _attach_text(page: pymupdf.Page, f: PlotFrame):
-    """Title above the frame, x label below the x ticks, y label left of y ticks."""
-    d = page.get_text("dict")
-    lines = []
-    for b in d["blocks"]:
-        for ln in b.get("lines", []):
-            txt = " ".join(s["text"] for s in ln["spans"]).strip()
-            if txt:
-                lines.append((pymupdf.Rect(ln["bbox"]), tuple(ln["dir"]), txt))
+def _attach_text(text: PageText, f: PlotFrame):
+    """Title (or figure caption), x label below the x ticks, y label left of y ticks."""
+    lines = text.lines()
     r = f.rect
     ylab_x0 = min(l.rect.x0 for l in f.yaxis.labels)
     xlab_y1 = max(l.rect.y1 for l in f.xaxis.labels)
@@ -309,6 +355,24 @@ def _attach_text(page: pymupdf.Page, f: PlotFrame):
              and parse_number(t) is None]
     below.sort(key=lambda z: z[0].y0)
     f.xlabel = below[0][1] if below else ""
+
+    # "Figure N. ..." caption under the plot (common in newer datasheets)
+    cap_top = (below[0][0].y1 if below else xlab_y1)
+    caps = [(rc, t) for rc, t in horiz
+            if cap_top - 1 < rc.y0 < cap_top + 45 and rc.x1 > ylab_x0 - 30 and rc.x0 < r.x1 + 30
+            and re.match(r"^(Figure|Fig\.)\s*\d+", t)]
+    if caps:
+        caps.sort(key=lambda z: z[0].y0)
+        rc, t = caps[0]
+        parts = [t]
+        nxt = [(rc2, t2) for rc2, t2 in horiz if 0 <= rc2.y0 - rc.y1 < 0.8 * rc.height
+               and abs(rc2.x0 - rc.x0) < 120 and not re.match(r"^(Figure|Fig\.)", t2)]
+        if nxt:
+            parts.append(min(nxt, key=lambda z: z[0].y0)[1])
+        cap = " ".join(parts)
+        m = re.match(r"^((?:Figure|Fig\.)\s*\d+)\.?\s*(.*)$", cap)
+        f.figure = m.group(1) if m else ""
+        f.title = (m.group(2) if m else cap) or f.title
 
     left = [(rc, t) for rc, t in vert
             if ylab_x0 - 25 < rc.x1 <= ylab_x0 + 1 and rc.y1 > r.y0 - 5 and rc.y0 < r.y1 + 5]

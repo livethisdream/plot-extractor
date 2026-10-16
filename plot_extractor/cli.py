@@ -39,6 +39,7 @@ def _run_one(path: str, out: str, overlays: bool, replots: bool, llm_url: str | 
                 "plots": len(res.plots), "series": len(series),
                 "low_confidence_series": sum(1 for s in series if s.confidence < 0.5),
                 "raster_figures": len(res.raster_pages),
+                "warnings": res.warnings,
                 "seconds": round(time.time() - t0, 2)}
     except Exception as e:  # keep the batch going
         return {"source": path, "ok": False, "error": f"{type(e).__name__}: {e}",
@@ -81,7 +82,7 @@ def main(argv=None):
             fh.write(json.dumps(r) + "\n")
             fh.flush()
             n_ok += r["ok"]
-            status = "ok " if r["ok"] else "ERR"
+            status = ("ok " if r.get("plots") else "WARN") if r["ok"] else "ERR"
             extra = (f"{r.get('plots', 0)} plots, {r.get('series', 0)} series"
                      + (f", {r['low_confidence_series']} low-conf" if r.get("low_confidence_series") else "")
                      + (f", {r['raster_figures']} raster figs skipped" if r.get("raster_figures") else "")

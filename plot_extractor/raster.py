@@ -23,5 +23,5 @@ def raster_figures(page: pymupdf.Page, frames, min_size: float = 100.0) -> list[
         if any((r & c).get_area() > 0.3 * r.get_area() for c in covered):
             continue
         found.append({"page": page.number + 1, "bbox_pt": [round(v, 1) for v in r],
-                      "status": "raster figure – not extracted (raster path not implemented)"})
+                      "status": "embedded image - not analyzed (could be a photo or a raster plot)"})
     return found

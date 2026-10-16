@@ -29,7 +29,9 @@ Most modern datasheets draw their plots as vector graphics. `plot-extractor` rea
 
 ## Quick start
 
-Requires Python 3.10 or newer. Dependencies are PyMuPDF, NumPy, SciPy and Matplotlib, all pip-installable on Linux, macOS and Windows.
+Requires Python 3.10 or newer. Dependencies are PyMuPDF, NumPy, SciPy, Matplotlib and Pillow, all pip-installable on Linux, macOS and Windows.
+
+Some datasheets draw their tick numbers and legend text as vector outlines instead of real text (see [Outlined labels](#outlined-labels-ocr)). Reading those needs the free [Tesseract](https://github.com/tesseract-ocr/tesseract) OCR engine, which runs offline: `sudo apt install tesseract-ocr` (Linux), `brew install tesseract` (macOS), or the Windows installer. Without it those plots are skipped with a warning; everything else works.
 
 ```bash
 git clone https://github.com/livethisdream/plot-extractor
@@ -50,7 +52,7 @@ Console output looks like:
 done: 1/1 ok -> out/ (index: out/index.jsonl)
 ```
 
-On HMC576, one worker takes about 3.4 s per datasheet with both check images and about 1.2 s without them.
+On HMC576, one worker takes about 3.4 s per datasheet with both check images and about 1.2 s without them. Datasheets that need OCR are slower: ADRF5050 (18 plots on 5 OCR pages) takes about a minute.
 
 ## Drop-folder automation (GitHub Actions)
 
@@ -152,6 +154,19 @@ Editing `plot-extractor.env` doesn't start a run by itself; the change applies t
 
 Skipping both PNGs cuts processing time by about two-thirds (3.4 s → 1.2 s per datasheet on HMC576) and keeps the repo much smaller on large batches.
 
+## Outlined labels (OCR)
+
+Some datasheets, including newer ADI ones such as ADRF5050, export every tick number, axis title and legend entry as filled vector shapes instead of text. Nothing on those pages is searchable, so the tool can't read the axes directly.
+
+When a page has plot-like graphics but no readable tick numbers, the tool falls back to OCR:
+
+1. it collects the small filled shapes that are letters and digits, and groups them into words and lines (including rotated y-axis titles);
+2. it renders each group cleanly, with gridlines and curves masked out, and reads them all with Tesseract in one pass;
+3. for numbers, it uses the shapes themselves to place the minus sign and decimal point (OCR often drops those) and takes only the digits from OCR;
+4. axis fitting tolerates one misread or missing tick label per axis.
+
+Plots read this way have `"labels_from_ocr": true` in their JSON, and the run lists the pages in its warnings. The curve data still comes from the vector geometry; OCR only supplies the labels.
+
 ## Checking results and confidence
 
 Every series gets a `confidence` between 0 and 1. Anything below about 0.5 is worth a look. `low_confidence_series` in `index.jsonl` counts them per datasheet, so you can sort a batch and review the worst first.
@@ -165,7 +180,8 @@ Confidence drops, and a `note` explains why, when:
 Some cases are reported rather than guessed:
 
 - **Identical legend styles.** Some datasheets draw two series with the same line style. On HMC576 *Output Power vs. Drive Level*, −6 dBm and 0 dBm are both dotted. Those curves come out as `"-6dBm | 0dBm [curve 1 of 2, top to bottom]"`, with `ambiguous_with` listing both labels.
-- **Raster figures**, meaning plots embedded as images, are listed in `summary.json` but not extracted.
+- **Embedded images**, which may be photos or raster plots, are listed in `summary.json` but not analyzed.
+- **No plots found** in a datasheet is reported as a warning (`WARN` on the command line, **no plots found** in the GitHub summary), not as a clean success.
 
 The two images make review quick. The **overlay** shows whether the points landed on the right curves. The **replot** shows whether the data alone reproduces the plot: if it looks like the datasheet, the extraction worked, and mixed-up series show up as spikes.
 
@@ -234,8 +250,9 @@ write_outputs(res, "out/", overlays=True, replots=True)
 - **Dense same-color clusters.** When several dashed curves run within a few points of each other, fragments can be mixed. Confidence scores and notes flag this.
 - **Identical legend styles** can't be resolved from the legend alone; see above.
 - **Axes** need at least three numeric tick labels on each axis. Dual y-axis plots, and plots whose tick labels sit inside the frame, aren't handled yet.
+- **OCR'd text** can be imperfect in titles and legends (e.g. a dropped letter in a rotated axis title). Tick numbers are cross-checked against the glyph shapes and the axis fit; legend labels aren't.
 
-Tested so far on ADI's HMC576 datasheet and synthetic plots. Expanding coverage across vendors and drawing styles is the next step.
+Tested so far on ADI's HMC576, HMC383 and ADRF5050 datasheets and synthetic plots. Expanding coverage across vendors and drawing styles is the next step.
 
 ## Development
 
@@ -247,6 +264,7 @@ pytest
 | Test | What it covers |
 |---|---|
 | `tests/test_synthetic.py` | builds a datasheet-style PDF with known curves (solid, dashed, dotted, colored, log axis) and checks accuracy against the true values |
+| `tests/test_ocr.py` | a plot whose tick numbers and legend are drawn as outlines; checks OCR reads them and the curves come out right (skipped without Tesseract) |
 | `tests/test_inbox.py` | the drop-folder flow: a good PDF, a corrupt one, and a reused filename |
 | `tests/test_hmc576.py` | regression test on ADI's HMC576; runs when `tests/data/hmc576.pdf` is present (that copy is git-ignored) |
 
@@ -260,6 +278,8 @@ plot_extractor/
   assign.py       dash-pattern matching, linking, confidence
   extract.py      pipeline and output writing
   overlay.py      overlay and replot images
+  text.py         page words from the PDF text layer and/or OCR
+  ocr.py          reading outlined (non-text) labels with Tesseract
   inbox.py        drop-folder processing
   cli.py          plot-extractor command
   llm.py          optional local-LLM metadata step

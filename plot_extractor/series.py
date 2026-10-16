@@ -21,6 +21,7 @@ from scipy.optimize import linear_sum_assignment
 
 from .axes import PlotFrame, parse_number
 from .primitives import Box, Seg
+from .text import PageText
 
 
 # --------------------------------------------------------------------------- strokes
@@ -136,14 +137,35 @@ def curve_segments(frame: PlotFrame, segs: list[Seg], legend_rects: list[pymupdf
     pad = 1.5
     inside = [s for s in segs
               if r.x0 - pad <= s.mid[0] <= r.x1 + pad and r.y0 - pad <= s.mid[1] <= r.y1 + pad]
-    # styles that are (nearly) all axis-aligned are grid / frame / tick styles
-    tot, diag = defaultdict(float), defaultdict(float)
+    # grid / frame / tick styles: nearly all of their length lies on a few long
+    # horizontal or vertical lines. (Curves can be drawn as tiny H/V steps, so
+    # "axis-aligned" alone isn't enough.)
+    tot = defaultdict(float)
+    hv = defaultdict(list)  # style -> [(orientation, coordinate, length)]
     for s in inside:
-        L = max(s.length, 0.3)
+        L = s.length if s.length > 0 else 0.3
         tot[s.style] += L
-        if not s.axis_aligned() and s.length > 0.3:
-            diag[s.style] += L
-    curve_styles = {k for k in tot if diag[k] > 0.08 * tot[k] and diag[k] > 5.0}
+        if s.axis_aligned() or s.length == 0:
+            vertical = abs(s.p0[0] - s.p1[0]) < abs(s.p0[1] - s.p1[1])
+            hv[s.style].append(("v", s.p0[0], L) if vertical else ("h", s.p0[1], L))
+    curve_styles = set()
+    for st, T in tot.items():
+        lined = 0.0
+        for o in ("h", "v"):
+            span = r.width if o == "h" else r.height
+            pts = sorted((c, L) for oo, c, L in hv[st] if oo == o)
+            # bands of width 0.3 pt measured from the band's first coordinate
+            # (not chained), so slowly sloping staircase curves don't merge
+            band0, run_L = None, 0.0
+            for c, L in pts + [(float("inf"), 0.0)]:
+                if band0 is not None and c - band0 <= 0.3:
+                    run_L += L
+                else:
+                    if run_L >= 0.15 * span:
+                        lined += run_L
+                    band0, run_L = c, L
+        if T > 5.0 and lined < 0.85 * T:
+            curve_styles.add(st)
     xs = set(np.round(frame.xaxis.positions, 1))
     ys = set(np.round(frame.yaxis.positions, 1))
     out = []
@@ -227,11 +249,13 @@ class LegendEntry:
 
 
 def find_legend(page: pymupdf.Page, frame: PlotFrame, segs: list[Seg], boxes: list[Box],
-                curve_styles: set):
+                curve_styles: set, text: PageText | None = None):
     """Legend entries inside the frame, plus regions to exclude from curve data."""
     r = frame.rect
-    # build label candidates from words grouped by PDF text line, split on wide gaps
-    words = [w for w in page.get_text("words") if r.contains(pymupdf.Rect(w[:4]))]
+    text = text or PageText.from_page(page)
+    # build label candidates from words grouped by text line, split on wide gaps
+    words = [w.as_tuple() for w in text.words
+             if abs(w.dir[1]) < 0.1 and r.contains(w.rect)]
     by_line = defaultdict(list)
     for w in words:
         by_line[(w[5], w[6])].append(w)
@@ -240,7 +264,7 @@ def find_legend(page: pymupdf.Page, frame: PlotFrame, segs: list[Seg], boxes: li
         ws.sort(key=lambda w: w[0])
         groups, cur = [], []
         for w in ws:
-            if cur and w[0] - cur[-1][2] > 6:
+            if cur and w[0] - cur[-1][2] > max(6.0, 2.2 * (w[3] - w[1])):
                 groups.append(cur)
                 cur = []
             cur.append(w)

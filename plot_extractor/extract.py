@@ -14,7 +14,9 @@ import pymupdf
 from .assign import Series, extract_series
 from .axes import PlotFrame, find_plots
 from .primitives import extract_primitives
+from .ocr import ocr_words
 from .raster import raster_figures
+from .text import PageText
 
 
 @dataclass
@@ -39,6 +41,8 @@ class PlotResult:
             "page": self.page,
             "plot_index": self.index,
             "title": f.title,
+            "figure": f.figure,
+            "labels_from_ocr": f.ocr,
             "x_axis": {"label": f.xlabel, "scale": f.xaxis.scale,
                        "ticks": [l.value for l in f.xaxis.labels],
                        "range": [float(f.xaxis.to_value(f.xaxis.lo)), float(f.xaxis.to_value(f.xaxis.hi))]},
@@ -82,6 +86,14 @@ class DocResult:
     plots: list[PlotResult]
     raster_pages: list[dict]  # figures that need the raster path
     error: str = ""
+    notes: list[str] = field(default_factory=list)
+
+    @property
+    def warnings(self) -> list[str]:
+        w = list(self.notes)
+        if not self.error and not self.plots:
+            w.append("no plots found")
+        return w
 
 
 def extract_pdf(path: str | Path) -> DocResult:
@@ -92,25 +104,53 @@ def extract_pdf(path: str | Path) -> DocResult:
         return DocResult(str(path), [], [], f"open failed: {e}")
     plots: list[PlotResult] = []
     raster: list[dict] = []
+    notes: list[str] = []
     k = 0
     for pno in range(doc.page_count):
         page = doc[pno]
         prims = extract_primitives(page)
-        frames = find_plots(page, prims.segs, pno)
+        text = PageText.from_page(page)
+        frames = find_plots(page, prims.segs, pno, text)
+        if not frames and _looks_like_plots(prims.segs):
+            # labels may be drawn as outlines rather than text: try OCR
+            words, msg = ocr_words(page)
+            if words:
+                text.extend(words)
+                frames = find_plots(page, prims.segs, pno, text)
+                for f in frames:
+                    f.ocr = True
+            if msg and (frames or not words):
+                notes.append(f"page {pno + 1}: {msg}" + ("" if frames else "; no plots recognized"))
         for f in frames:
             k += 1
-            series, _, diag = extract_series(page, f, prims.segs, prims.boxes)
+            series, _, diag = extract_series(page, f, prims.segs, prims.boxes, text)
             plots.append(PlotResult(str(path), pno + 1, k, f, series, diag))
         raster += raster_figures(page, frames)
-    return DocResult(str(path), plots, raster)
+    ocr_pages = sorted({p.page for p in plots if p.frame.ocr})
+    if ocr_pages:
+        notes.append(f"axis/legend labels read with OCR on page(s) {', '.join(map(str, ocr_pages))}; "
+                     "check overlays for misread labels")
+    return DocResult(str(path), plots, raster, notes=notes)
+
+
+def _looks_like_plots(segs, min_lines: int = 8, min_len: float = 60.0) -> bool:
+    """Cheap test before OCR: a page with plots has many long horizontal/vertical lines."""
+    n = sum(1 for s in segs if s.length >= min_len and s.axis_aligned())
+    return n >= min_lines
 
 
 def write_outputs(res: DocResult, out_dir: str | Path, overlays: bool = True,
                   replots: bool = True) -> list[Path]:
     out_dir = Path(out_dir) / Path(res.source).stem
     out_dir.mkdir(parents=True, exist_ok=True)
+    # reprocessing replaces this datasheet's results, so plots that were renumbered
+    # or are no longer found don't leave stale files behind
+    for old in out_dir.glob("p*_*"):
+        if old.suffix in (".json", ".csv", ".png"):
+            old.unlink()
     written = []
-    summary = {"source": res.source, "error": res.error, "plots": [], "raster_figures": res.raster_pages}
+    summary = {"source": res.source, "error": res.error, "warnings": res.warnings, "plots": [],
+               "raster_figures": res.raster_pages}
     if overlays or replots:
         from .overlay import render_overlay, render_replot
     if overlays:
