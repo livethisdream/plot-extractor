@@ -21,7 +21,7 @@ def _collect(inputs: list[str]) -> list[Path]:
     return files
 
 
-def _run_one(path: str, out: str, overlays: bool, llm_url: str | None, llm_model: str) -> dict:
+def _run_one(path: str, out: str, overlays: bool, replots: bool, llm_url: str | None, llm_model: str) -> dict:
     from .extract import extract_pdf, write_outputs
     t0 = time.time()
     try:
@@ -31,7 +31,7 @@ def _run_one(path: str, out: str, overlays: bool, llm_url: str | None, llm_model
             part = Path(path).stem
             for p in res.plots:
                 p.metadata = normalize(p.to_dict(), llm_url, llm_model, part)
-        write_outputs(res, out, overlays=overlays)
+        write_outputs(res, out, overlays=overlays, replots=replots)
         series = [s for p in res.plots for s in p.series]
         return {"source": path, "ok": not res.error, "error": res.error,
                 "plots": len(res.plots), "series": len(series),
@@ -49,7 +49,10 @@ def main(argv=None):
     ap.add_argument("inputs", nargs="+", help="PDF files and/or directories (searched recursively)")
     ap.add_argument("-o", "--out", default="out", help="output directory (default: out)")
     ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 1, help="parallel workers")
-    ap.add_argument("--no-overlay", action="store_true", help="skip overlay PNGs (faster)")
+    ap.add_argument("--no-overlay", action="store_true",
+                    help="skip overlay PNGs (env PLOTX_OVERLAY=false does the same)")
+    ap.add_argument("--no-replot", action="store_true",
+                    help="skip re-plotted PNGs (env PLOTX_REPLOT=false does the same)")
     ap.add_argument("--llm-url", default=os.environ.get("PLOTX_LLM_URL"),
                     help="OpenAI-compatible base URL for optional metadata normalization, "
                          "e.g. http://hermes.local:8080/v1 (env PLOTX_LLM_URL)")
@@ -57,6 +60,9 @@ def main(argv=None):
                     help="model name to send to the LLM server (env PLOTX_LLM_MODEL)")
     a = ap.parse_args(argv)
 
+    from .extract import env_flag
+    overlays = env_flag("PLOTX_OVERLAY") and not a.no_overlay
+    replots = env_flag("PLOTX_REPLOT") and not a.no_replot
     files = _collect(a.inputs)
     if not files:
         print("no PDFs found", file=sys.stderr)
@@ -66,7 +72,7 @@ def main(argv=None):
     index = out / "index.jsonl"
     n_ok = 0
     with index.open("a") as fh, ProcessPoolExecutor(max_workers=max(1, a.jobs)) as ex:
-        futs = {ex.submit(_run_one, str(f), str(out), not a.no_overlay, a.llm_url, a.llm_model): f
+        futs = {ex.submit(_run_one, str(f), str(out), overlays, replots, a.llm_url, a.llm_model): f
                 for f in files}
         for k, fu in enumerate(as_completed(futs), 1):
             r = fu.result()

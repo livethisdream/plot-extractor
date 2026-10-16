@@ -30,7 +30,7 @@ def _unique(dest: Path) -> Path:
 
 
 def process_inbox(inbox: Path, processed: Path, failed: Path, out: Path,
-                  overlays: bool = True, llm_url: str | None = None,
+                  overlays: bool = True, replots: bool = True, llm_url: str | None = None,
                   llm_model: str = "local") -> list[dict]:
     from .extract import extract_pdf, write_outputs
 
@@ -48,7 +48,7 @@ def process_inbox(inbox: Path, processed: Path, failed: Path, out: Path,
                 from .llm import normalize
                 for p in res.plots:
                     p.metadata = normalize(p.to_dict(), llm_url, llm_model, pdf.stem)
-            write_outputs(res, out, overlays=overlays)
+            write_outputs(res, out, overlays=overlays, replots=replots)
             series = [s for p in res.plots for s in p.series]
             rec.update(ok=True, plots=len(res.plots), series=len(series),
                        low_confidence_series=sum(1 for s in series if s.confidence < 0.5),
@@ -90,13 +90,17 @@ def main(argv=None):
     ap.add_argument("--processed", default="processed")
     ap.add_argument("--failed", default="failed")
     ap.add_argument("--out", default="output")
-    ap.add_argument("--no-overlay", action="store_true")
+    ap.add_argument("--no-overlay", action="store_true", help="skip overlay PNGs (or env PLOTX_OVERLAY=false)")
+    ap.add_argument("--no-replot", action="store_true", help="skip re-plotted PNGs (or env PLOTX_REPLOT=false)")
     ap.add_argument("--llm-url", default=os.environ.get("PLOTX_LLM_URL") or None)
     ap.add_argument("--llm-model", default=os.environ.get("PLOTX_LLM_MODEL", "local"))
     a = ap.parse_args(argv)
 
+    from .extract import env_flag
     results = process_inbox(Path(a.inbox), Path(a.processed), Path(a.failed), Path(a.out),
-                            overlays=not a.no_overlay, llm_url=a.llm_url, llm_model=a.llm_model)
+                            overlays=env_flag("PLOTX_OVERLAY") and not a.no_overlay,
+                            replots=env_flag("PLOTX_REPLOT") and not a.no_replot,
+                            llm_url=a.llm_url, llm_model=a.llm_model)
     md = summary_markdown(results)
     print(md)
     if os.environ.get("GITHUB_STEP_SUMMARY"):

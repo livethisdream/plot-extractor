@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -59,6 +60,14 @@ class PlotResult:
         }
 
 
+def env_flag(name: str, default: bool = True) -> bool:
+    """Read an on/off switch from the environment (false/0/no/off = off)."""
+    v = os.environ.get(name)
+    if v is None or v.strip() == "":
+        return default
+    return v.strip().lower() not in ("0", "false", "no", "off")
+
+
 def _dumps(d: dict) -> str:
     """Indented JSON, but with each [x, y] point on one line."""
     txt = json.dumps(d, indent=1)
@@ -98,13 +107,15 @@ def extract_pdf(path: str | Path) -> DocResult:
     return DocResult(str(path), plots, raster)
 
 
-def write_outputs(res: DocResult, out_dir: str | Path, overlays: bool = True) -> list[Path]:
+def write_outputs(res: DocResult, out_dir: str | Path, overlays: bool = True,
+                  replots: bool = True) -> list[Path]:
     out_dir = Path(out_dir) / Path(res.source).stem
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
     summary = {"source": res.source, "error": res.error, "plots": [], "raster_figures": res.raster_pages}
+    if overlays or replots:
+        from .overlay import render_overlay, render_replot
     if overlays:
-        from .overlay import render_overlay
         doc = pymupdf.open(res.source)
     for p in res.plots:
         d = p.to_dict()
@@ -123,6 +134,10 @@ def write_outputs(res: DocResult, out_dir: str | Path, overlays: bool = True) ->
             o = out_dir / f"{p.slug}_overlay.png"
             render_overlay(doc[p.page - 1], p.frame, p.series, str(o))
             written.append(o)
+        if replots:
+            rp = out_dir / f"{p.slug}_replot.png"
+            render_replot(p.frame, p.series, str(rp))
+            written.append(rp)
         summary["plots"].append({
             "file": j.name, "page": p.page, "title": p.frame.title,
             "series": {s.label: s.confidence for s in p.series},

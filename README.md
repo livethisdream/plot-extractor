@@ -16,7 +16,14 @@ For each PDF this writes, per plot:
 | `*.json` | title, axis labels and scale (lin/log), tick values, calibration residual, and each series with label, confidence, notes and `[x, y]` points |
 | `*.csv` | `series, x, y` |
 | `*_overlay.png` | the extracted points drawn over a render of the original plot, for spot checks |
+| `*_replot.png` | a fresh chart drawn only from the extracted data and detected axes. If it looks like the datasheet, the round trip worked; mixed-up series show up as spikes |
 | `summary.json` | per-document roll-up, including figures that could not be processed |
+
+Both PNGs are on by default. Turn them off with:
+
+- `--no-replot` / `--no-overlay` on the command line;
+- `PLOTX_REPLOT=false` / `PLOTX_OVERLAY=false` as environment variables;
+- in the GitHub workflow, the repository variables of the same names (Settings → Secrets and variables → Actions → Variables).
 
 `out/index.jsonl` gets one line per PDF (status, plot and series counts, number of low-confidence series, time taken). Sort or filter it to triage a batch.
 
@@ -58,7 +65,7 @@ Each series has a `confidence` between 0 and 1. It drops when links needed loose
 Two situations are flagged rather than guessed:
 
 - **Identical legend styles.** Some datasheets draw two series with the same line style. On HMC576 "Output Power vs. Drive Level", −6 dBm and 0 dBm are both dotted. Those curves are emitted as `"-6dBm | 0dBm [curve k of n, top to bottom]"` with `ambiguous_with` set.
-- **Overlapping fragments** get a `note` and reduced confidence.
+- **Overlapping fragments** or **abrupt vertical jumps** between neighboring points (signs that a series picked up part of another curve) get a `note` and reduced confidence.
 
 ## Optional: local LLM for metadata
 

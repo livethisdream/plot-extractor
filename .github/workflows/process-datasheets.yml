@@ -46,7 +46,11 @@ jobs:
       - name: Extract plots
         if: steps.check.outputs.count != '0'
         env:
-          # optional: set these repository variables to enable LLM metadata
+          # optional repository variables (Settings > Secrets and variables > Actions > Variables):
+          #   PLOTX_REPLOT / PLOTX_OVERLAY = false to skip those PNGs (both default to on)
+          #   PLOTX_LLM_URL / PLOTX_LLM_MODEL to enable LLM metadata
+          PLOTX_REPLOT: ${{ vars.PLOTX_REPLOT }}
+          PLOTX_OVERLAY: ${{ vars.PLOTX_OVERLAY }}
           PLOTX_LLM_URL: ${{ vars.PLOTX_LLM_URL }}
           PLOTX_LLM_MODEL: ${{ vars.PLOTX_LLM_MODEL }}
         run: python -m plot_extractor.inbox --inbox unprocessed --processed processed --failed failed --out output

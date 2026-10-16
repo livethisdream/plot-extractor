@@ -368,6 +368,15 @@ def _x_overlap(tracks) -> float:
     return over / span if span > 0 else 0.0
 
 
+def _jumps(frame, P) -> int:
+    """Count near-vertical jumps between x-adjacent points (a sign of mixed curves)."""
+    if len(P) < 3:
+        return 0
+    d = np.diff(P, axis=0)
+    big = (np.abs(d[:, 1]) > 0.15 * frame.rect.height) & (np.abs(d[:, 0]) < 0.02 * frame.rect.width)
+    return int(big.sum())
+
+
 def _points(frame, tracks):
     pts = [p for t in tracks for s in t for p in s.pts]
     P = np.asarray(pts, float).reshape(-1, 2)
@@ -447,6 +456,11 @@ def extract_series(page: pymupdf.Page, frame: PlotFrame, segs: list[Seg], boxes:
             if ov > 0.08:
                 note = f"fragments overlap over {ov:.0%} of the x-span; series may include pieces of a neighboring curve"
                 conf *= max(0.2, 1 - 2 * ov)
+            nj = _jumps(frame, P)
+            if nj >= 2:
+                note = (note + "; " if note else "") + \
+                    f"{nj} abrupt vertical jumps between adjacent points; likely mixed with another curve"
+                conf *= 0.4
             out.append(Series(G.labels[0], data, P, ts, round(conf, 3), note=note))
             continue
         curves = _split_curves(ts, reach=4 * gmax + 4)
