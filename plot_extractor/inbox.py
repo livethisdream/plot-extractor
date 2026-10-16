@@ -20,6 +20,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .config import setting
+
 
 def _unique(dest: Path) -> Path:
     """Avoid overwriting an earlier file with the same name."""
@@ -92,8 +94,8 @@ def main(argv=None):
     ap.add_argument("--out", default="output")
     ap.add_argument("--no-overlay", action="store_true", help="skip overlay PNGs (or env PLOTX_OVERLAY=false)")
     ap.add_argument("--no-replot", action="store_true", help="skip re-plotted PNGs (or env PLOTX_REPLOT=false)")
-    ap.add_argument("--llm-url", default=os.environ.get("PLOTX_LLM_URL") or None)
-    ap.add_argument("--llm-model", default=os.environ.get("PLOTX_LLM_MODEL", "local"))
+    ap.add_argument("--llm-url", default=setting("PLOTX_LLM_URL"))
+    ap.add_argument("--llm-model", default=setting("PLOTX_LLM_MODEL", "local"))
     a = ap.parse_args(argv)
 
     from .extract import env_flag

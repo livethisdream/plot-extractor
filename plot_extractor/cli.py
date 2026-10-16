@@ -9,6 +9,8 @@ import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+from .config import setting
+
 
 def _collect(inputs: list[str]) -> list[Path]:
     files: list[Path] = []
@@ -50,13 +52,13 @@ def main(argv=None):
     ap.add_argument("-o", "--out", default="out", help="output directory (default: out)")
     ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 1, help="parallel workers")
     ap.add_argument("--no-overlay", action="store_true",
-                    help="skip overlay PNGs (env PLOTX_OVERLAY=false does the same)")
+                    help="skip overlay PNGs (or PLOTX_OVERLAY=false in plot-extractor.env / env)")
     ap.add_argument("--no-replot", action="store_true",
-                    help="skip re-plotted PNGs (env PLOTX_REPLOT=false does the same)")
-    ap.add_argument("--llm-url", default=os.environ.get("PLOTX_LLM_URL"),
+                    help="skip re-plotted PNGs (or PLOTX_REPLOT=false in plot-extractor.env / env)")
+    ap.add_argument("--llm-url", default=setting("PLOTX_LLM_URL"),
                     help="OpenAI-compatible base URL for optional metadata normalization, "
                          "e.g. http://hermes.local:8080/v1 (env PLOTX_LLM_URL)")
-    ap.add_argument("--llm-model", default=os.environ.get("PLOTX_LLM_MODEL", "local"),
+    ap.add_argument("--llm-model", default=setting("PLOTX_LLM_MODEL", "local"),
                     help="model name to send to the LLM server (env PLOTX_LLM_MODEL)")
     a = ap.parse_args(argv)
 

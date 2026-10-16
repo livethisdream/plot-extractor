@@ -61,11 +61,9 @@ class PlotResult:
 
 
 def env_flag(name: str, default: bool = True) -> bool:
-    """Read an on/off switch from the environment (false/0/no/off = off)."""
-    v = os.environ.get(name)
-    if v is None or v.strip() == "":
-        return default
-    return v.strip().lower() not in ("0", "false", "no", "off")
+    """On/off setting from the environment or plot-extractor.env (see config.py)."""
+    from .config import flag
+    return flag(name, default)
 
 
 def _dumps(d: dict) -> str:

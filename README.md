@@ -123,16 +123,32 @@ Points are the vertices the plotting software drew. For dashed curves, that mean
 
 ## Settings
 
-Every switch works three ways: a command-line flag, an environment variable, or, for the GitHub workflow, a repository variable. Set repository variables under **Settings → Secrets and variables → Actions → Variables**, so you don't have to edit the YAML.
+Settings live in **`plot-extractor.env`** at the root of the repo: plain `KEY=value` lines with comments. The GitHub workflow reads it on every run. To change a setting from your phone, open the file on github.com, tap the pencil icon, edit the value and commit. The next run uses it.
 
-| What | Command-line flag | Environment / repository variable | Default |
+```ini
+PLOTX_REPLOT=true          # re-plotted chart per plot
+PLOTX_OVERLAY=true         # original plot with extracted points on top
+PLOTX_LLM_URL=             # empty = LLM step off
+PLOTX_LLM_MODEL=local
+```
+
+For local runs you can also override any setting without editing the file. The first one that's set wins:
+
+1. a command-line flag;
+2. an environment variable with the same name (e.g. `PLOTX_REPLOT=false plot-extractor ...`);
+3. `plot-extractor.env` in the current folder, or the file named in `PLOTX_CONFIG`;
+4. the built-in default.
+
+| What | Setting | Command-line flag | Default |
 |---|---|---|---|
-| Skip re-plotted PNGs | `--no-replot` | `PLOTX_REPLOT=false` | on |
-| Skip overlay PNGs | `--no-overlay` | `PLOTX_OVERLAY=false` | on |
-| LLM endpoint for metadata | `--llm-url URL` | `PLOTX_LLM_URL` | off |
-| LLM model name | `--llm-model NAME` | `PLOTX_LLM_MODEL` | `local` |
-| Parallel workers | `-j N` | | number of CPU cores |
-| Output folder | `-o DIR` (`--out` for `inbox`) | | `out/` (`output/` for `inbox`) |
+| Re-plotted PNGs | `PLOTX_REPLOT=false` turns off | `--no-replot` | on |
+| Overlay PNGs | `PLOTX_OVERLAY=false` turns off | `--no-overlay` | on |
+| LLM endpoint for metadata | `PLOTX_LLM_URL` | `--llm-url URL` | off |
+| LLM model name | `PLOTX_LLM_MODEL` | `--llm-model NAME` | `local` |
+| Parallel workers | | `-j N` | number of CPU cores |
+| Output folder | | `-o DIR` (`--out` for `inbox`) | `out/` (`output/` for `inbox`) |
+
+Editing `plot-extractor.env` doesn't start a run by itself; the change applies to the next datasheets you drop in.
 
 Skipping both PNGs cuts processing time by about two-thirds (3.4 s → 1.2 s per datasheet on HMC576) and keeps the repo much smaller on large batches.
 
@@ -169,7 +185,7 @@ It works with any OpenAI-compatible endpoint, such as llama.cpp server, vLLM, Ol
 plot-extractor datasheets/ -o out/ --llm-url http://hermes.local:8080/v1 --llm-model <model-name>
 ```
 
-The result lands in each plot's `metadata` field. If the endpoint is unreachable, extraction still completes and the error is recorded there. It uses only the Python standard library, so it adds no dependencies.
+For the GitHub workflow, set `PLOTX_LLM_URL` and `PLOTX_LLM_MODEL` in `plot-extractor.env` instead. The result lands in each plot's `metadata` field. If the endpoint is unreachable, extraction still completes and the error is recorded there. It uses only the Python standard library, so it adds no dependencies.
 
 An agent can also drive the tool directly: run the command, read `index.jsonl`, and open the overlay and replot images for low-confidence series.
 
