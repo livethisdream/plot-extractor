@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+out/
+# third-party datasheets used for local regression tests
+tests/data/*.pdf
