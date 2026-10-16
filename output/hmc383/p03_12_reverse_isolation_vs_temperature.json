@@ -1,8 +1,10 @@
 {
  "source": "unprocessed/hmc383.pdf",
  "page": 3,
- "plot_index": 11,
+ "plot_index": 12,
  "title": "Reverse Isolation vs. Temperature",
+ "figure": "",
+ "labels_from_ocr": false,
  "x_axis": {
   "label": "FREQUENCY (GHz)",
   "scale": "linear",

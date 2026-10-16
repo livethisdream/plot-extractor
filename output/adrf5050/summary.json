@@ -1,7 +1,222 @@
 {
  "source": "unprocessed/adrf5050.pdf",
  "error": "",
- "plots": [],
+ "warnings": [
+  "page 6: read 24 outlined labels with OCR",
+  "page 10: read 177 outlined labels with OCR",
+  "page 11: read 225 outlined labels with OCR",
+  "page 12: read 46 outlined labels with OCR",
+  "page 13: read 79 outlined labels with OCR",
+  "axis/legend labels read with OCR on page(s) 6, 10, 11, 12, 13; check overlays for misread labels"
+ ],
+ "plots": [
+  {
+   "file": "p06_01_power_derating_vs_frequency_low_frequency_detail_tcase_85_c.json",
+   "page": 6,
+   "title": "Power Derating vs. Frequency, Low Frequency Detail, TCASE = 85\u00b0C",
+   "series": {
+    "series_1 (solid)": 0.9
+   },
+   "min_confidence": 0.9
+  },
+  {
+   "file": "p10_02_insertion_loss_for_rfc_to_rfx_on_vs_frequency.json",
+   "page": 10,
+   "title": "Insertion Loss for RFC to RFx (On) vs. Frequency",
+   "series": {
+    "RF1": 1.0,
+    "RF2": 1.0,
+    "RF3": 1.0,
+    "RF4": 1.0
+   },
+   "min_confidence": 1.0
+  },
+  {
+   "file": "p10_03_return_loss_for_rfx_on_vs_frequency.json",
+   "page": 10,
+   "title": "Return Loss for RFx (On) vs. Frequency",
+   "series": {
+    "RF1": 0.838,
+    "RF2": 0.538,
+    "RF3": 0.558,
+    "RF4": 0.635
+   },
+   "min_confidence": 0.538
+  },
+  {
+   "file": "p10_04_insertion_loss_for_rfc_to_rf1_on_vs_frequency_over_temperatu.json",
+   "page": 10,
+   "title": "Insertion Loss for RFC to RF1 (On) vs. Frequency over Temperature",
+   "series": {
+    "Ta -55\u00b0C": 1.0,
+    "Ta -40\u00b0C": 0.638,
+    "Ta +25\u00b0C": 1.0,
+    "Ta +85\u00b0C": 1.0,
+    "Ta +105\u00b0C": 1.0
+   },
+   "min_confidence": 0.638
+  },
+  {
+   "file": "p10_05_return_loss_for_rfx_off_vs_frequency.json",
+   "page": 10,
+   "title": "Return Loss for RFx (Off) vs. Frequency",
+   "series": {
+    "RF1": 0.628,
+    "RF2": 0.625,
+    "RF3": 0.633,
+    "RF4": 0.634
+   },
+   "min_confidence": 0.625
+  },
+  {
+   "file": "p10_06_isolation_for_rfc_to_rfx_off_vs_frequency_rf1_on.json",
+   "page": 10,
+   "title": "Isolation for RFC to RFx (Off) vs. Frequency, RF1 (On)",
+   "series": {
+    "RF2": 0.616,
+    "RF3": 0.655,
+    "RF4": 0.606
+   },
+   "min_confidence": 0.606
+  },
+  {
+   "file": "p10_07_return_loss_for_rfc_vs_frequency.json",
+   "page": 10,
+   "title": "Return Loss for RFC vs. Frequency",
+   "series": {
+    "RFC (RF1 ON)": 0.583,
+    "RFC (RF2 ON)": 0.682,
+    "RFC (RF3 ON)": 0.644,
+    "RFC (RF4 ON)": 0.61
+   },
+   "min_confidence": 0.583
+  },
+  {
+   "file": "p11_08_isolation_for_rfc_to_rfx_off_vs_frequency_rf2_on.json",
+   "page": 11,
+   "title": "Isolation for RFC to RFx (Off) vs. Frequency, RF2 (On)",
+   "series": {
+    "RF1": 0.609,
+    "RF3": 0.759,
+    "RF4": 0.618
+   },
+   "min_confidence": 0.609
+  },
+  {
+   "file": "p11_09_channel_to_channel_rfx_to_rfx_isolation_vs_frequency_rf1_on.json",
+   "page": 11,
+   "title": "Channel to Channel (RFx to RFx) Isolation vs. Frequency, RF1 (On)",
+   "series": {
+    "RF1 TO RF2": 0.638,
+    "RF1 TO RF3": 0.666,
+    "RF1 TO RF4": 0.596,
+    "RF2 TO RF3": 0.635,
+    "RF2 TO RF4": 0.751,
+    "RF3 TO RF4": 0.665
+   },
+   "min_confidence": 0.596
+  },
+  {
+   "file": "p11_10_isolation_for_rfc_to_rfx_off_vs_frequency_rf3_on.json",
+   "page": 11,
+   "title": "Isolation for RFC to RFx (Off) vs. Frequency, RF3 (On)",
+   "series": {
+    "RF1": 0.583,
+    "RF2": 0.64,
+    "RF4": 0.628
+   },
+   "min_confidence": 0.583
+  },
+  {
+   "file": "p11_11_channel_to_channel_rfx_to_rfx_isolation_vs_frequency_rf2_on.json",
+   "page": 11,
+   "title": "Channel to Channel (RFx to RFx) Isolation vs. Frequency, RF2 (On)",
+   "series": {
+    "RF1 TO RF2": 0.677,
+    "RF1 TO RF3": 0.73,
+    "RF1 TO RF4": 0.868,
+    "RF2 TO RF3": 0.653,
+    "RF2 TO RF4": 0.659,
+    "RF3 TO RF4": 0.673
+   },
+   "min_confidence": 0.653
+  },
+  {
+   "file": "p11_12_isolation_for_rfc_to_rfx_off_vs_frequency_rf4_on.json",
+   "page": 11,
+   "title": "Isolation for RFC to RFx (Off) vs. Frequency, RF4 (On)",
+   "series": {
+    "RF1": 0.65,
+    "RF2": 0.666,
+    "RF3": 0.606
+   },
+   "min_confidence": 0.606
+  },
+  {
+   "file": "p11_13_channel_to_channel_rfx_to_rfx_isolation_vs_frequency_rf3_on.json",
+   "page": 11,
+   "title": "Channel to Channel (RFx to RFx) Isolation vs. Frequency, RF3 (On)",
+   "series": {
+    "RF1 TO RF2": 0.723,
+    "RF1 TO RF3": 0.678,
+    "RF1 TO RF4": 0.902,
+    "RF2 TO RF3": 0.596,
+    "RF2 TO RF4": 0.627,
+    "RF3 TO RF4": 0.643
+   },
+   "min_confidence": 0.596
+  },
+  {
+   "file": "p12_14_channel_to_channel_rfx_to_rfx_isolation_vs_frequency_rf4_on.json",
+   "page": 12,
+   "title": "Channel to Channel (RFx to RFx) Isolation vs. Frequency, RF4 (On)",
+   "series": {
+    "RF1 TO RF2": 0.649,
+    "RF1 TO RF3": 0.765,
+    "RF1 TO RF4": 0.563,
+    "RF2 TO RF3": 0.601,
+    "RF2 TO RF4": 0.68,
+    "RF3 TO RF4": 0.615
+   },
+   "min_confidence": 0.563
+  },
+  {
+   "file": "p13_15_input_p0_1db_vs_frequency.json",
+   "page": 13,
+   "title": "Input P0.1dB vs. Frequency",
+   "series": {
+    "series_1 (solid)": 0.9
+   },
+   "min_confidence": 0.9
+  },
+  {
+   "file": "p13_16_input_ip3_vs_frequency_low_frequency_detail.json",
+   "page": 13,
+   "title": "Input IP3 vs. Frequency, Low Frequency Detail",
+   "series": {
+    "series_1 (solid)": 0.9
+   },
+   "min_confidence": 0.9
+  },
+  {
+   "file": "p13_17_input_ip3_vs_frequency.json",
+   "page": 13,
+   "title": "Input IP3 vs. Frequency",
+   "series": {
+    "series_1 (solid)": 0.9
+   },
+   "min_confidence": 0.9
+  },
+  {
+   "file": "p13_18_input_p0_1db_vs_frequency_low_frequency_detail.json",
+   "page": 13,
+   "title": "Input P0.1dB vs. Frequency, Low Frequency Detail",
+   "series": {
+    "series_1 (solid)": 0.9
+   },
+   "min_confidence": 0.9
+  }
+ ],
  "raster_figures": [
   {
    "page": 16,
@@ -11,7 +226,7 @@
     531.4,
     265.0
    ],
-   "status": "raster figure \u2013 not extracted (raster path not implemented)"
+   "status": "embedded image - not analyzed (could be a photo or a raster plot)"
   },
   {
    "page": 16,
@@ -21,7 +236,7 @@
     540.9,
     559.6
    ],
-   "status": "raster figure \u2013 not extracted (raster path not implemented)"
+   "status": "embedded image - not analyzed (could be a photo or a raster plot)"
   }
  ]
 }

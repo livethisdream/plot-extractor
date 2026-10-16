@@ -1,0 +1,78 @@
+{
+ "source": "unprocessed/adrf5050.pdf",
+ "page": 6,
+ "plot_index": 1,
+ "title": "Power Derating vs. Frequency, Low Frequency Detail, TCASE = 85\u00b0C",
+ "figure": "Figure 2",
+ "labels_from_ocr": true,
+ "x_axis": {
+  "label": "FREQUENCY (MHz)",
+  "scale": "log",
+  "ticks": [
+   0.01,
+   0.1,
+   1.0,
+   10.0,
+   100.0,
+   1000.0
+  ],
+  "range": [0.010016869462120109, 1004.5352408064857]
+ },
+ "y_axis": {
+  "label": "TING (dB)",
+  "scale": "linear",
+  "ticks": [
+   3.0,
+   0.0,
+   -3.0,
+   -6.0,
+   -9.0,
+   -12.0,
+   -15.0,
+   -18.0,
+   -21.0,
+   -24.0
+  ],
+  "range": [-24.035210166938796, 2.9893378527206735]
+ },
+ "bbox_pt": [
+  369.14,
+  306.53,
+  545.49,
+  447.38
+ ],
+ "calibration_residual": {
+  "x": 0.00044,
+  "y": 0.0013
+ },
+ "series": [
+  {
+   "label": "series_1 (solid)",
+   "confidence": 0.9,
+   "n_points": 14,
+   "ambiguous_with": [],
+   "note": "",
+   "points": [
+    [0.99961, -20.987],
+    [2.9929, -20.987],
+    [4.0976, -19.754],
+    [5.4677, -18.176],
+    [7.3289, -16.383],
+    [9.7794, -14.331],
+    [13.1, -12.093],
+    [17.48, -9.7408],
+    [23.324, -7.3889],
+    [31.243, -6.011],
+    [41.69, -4.5047],
+    [55.881, -2.9267],
+    [74.565, -1.377],
+    [99.497, -0.0010092]
+   ]
+  }
+ ],
+ "diagnostics": {
+  "legend": [],
+  "unassigned_length_pt": 0.0
+ },
+ "metadata": {}
+}

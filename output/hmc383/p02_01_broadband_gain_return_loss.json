@@ -3,6 +3,8 @@
  "page": 2,
  "plot_index": 1,
  "title": "Broadband Gain & Return Loss",
+ "figure": "",
+ "labels_from_ocr": false,
  "x_axis": {
   "label": "FREQUENCY (GHz)",
   "scale": "linear",

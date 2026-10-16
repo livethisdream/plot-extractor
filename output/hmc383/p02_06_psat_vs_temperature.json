@@ -3,6 +3,8 @@
  "page": 2,
  "plot_index": 6,
  "title": "Psat vs. Temperature",
+ "figure": "",
+ "labels_from_ocr": false,
  "x_axis": {
   "label": "FREQUENCY (GHz)",
   "scale": "linear",

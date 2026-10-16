@@ -3,6 +3,8 @@
  "page": 3,
  "plot_index": 8,
  "title": "Power Compression @ 30 GHz",
+ "figure": "",
+ "labels_from_ocr": false,
  "x_axis": {
   "label": "INPUT POWER (dBm)",
   "scale": "linear",

@@ -1,6 +1,7 @@
 {
  "source": "unprocessed/hmc383.pdf",
  "error": "",
+ "warnings": [],
  "plots": [
   {
    "file": "p02_01_broadband_gain_return_loss.json",
@@ -113,7 +114,18 @@
    "min_confidence": 0.526
   },
   {
-   "file": "p03_11_reverse_isolation_vs_temperature.json",
+   "file": "p03_11_gain_power_vs_supply_voltage_18_ghz.json",
+   "page": 3,
+   "title": "Gain & Power vs. Supply Voltage @ 18 GHz",
+   "series": {
+    "Gain": 1.0,
+    "P1dB": 0.967,
+    "Psat": 0.962
+   },
+   "min_confidence": 0.962
+  },
+  {
+   "file": "p03_12_reverse_isolation_vs_temperature.json",
    "page": 3,
    "title": "Reverse Isolation vs. Temperature",
    "series": {
